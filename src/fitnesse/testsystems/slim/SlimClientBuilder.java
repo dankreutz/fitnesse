@@ -1,19 +1,18 @@
 package fitnesse.testsystems.slim;
 
+import fitnesse.FitNesseContext;
+import fitnesse.slim.SlimPipeSocket;
+import fitnesse.socketservice.*;
+import fitnesse.testsystems.*;
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang.ArrayUtils;
-
-import fitnesse.FitNesseContext;
-import fitnesse.slim.SlimPipeSocket;
-import fitnesse.socketservice.ClientSocketFactory;
-import fitnesse.socketservice.PlainClientSocketFactory;
-import fitnesse.socketservice.PlainServerSocketFactory;
-import fitnesse.socketservice.SslClientSocketFactory;
-import fitnesse.testsystems.*;
+import static fitnesse.slim.SlimPipeSocket.STDERR_PREFIX;
+import static fitnesse.slim.SlimPipeSocket.STDOUT_PREFIX;
 
 public class SlimClientBuilder extends ClientBuilder<SlimCommandRunningClient> {
   public static final String SLIM_PORT = "SLIM_PORT";
@@ -51,6 +50,7 @@ public class SlimClientBuilder extends ClientBuilder<SlimCommandRunningClient> {
       return new CommandRunner(buildCommand(),
         createClasspathEnvironment(getClassPath()),
           getExecutionLogListener(), determineTimeout()) {
+
         @Override
         protected void redirectOutputs(Process process, final ExecutionLogListener executionLogListener) throws IOException {
           InputStream stderr = process.getErrorStream();
@@ -59,13 +59,11 @@ public class SlimClientBuilder extends ClientBuilder<SlimCommandRunningClient> {
             public void write(String output) {
               // Separate StdOut and StdErr and remove prefix"
               String originalMsg;
-              originalMsg = extractOriginalMessage(output,
-                  SlimPipeSocket.STDOUT_PREFIX);
+              originalMsg = extractOriginalMessage(output, STDOUT_PREFIX);
               if (originalMsg != null) {
                 executionLogListener.stdOut(originalMsg);
               } else {
-                originalMsg = extractOriginalMessage(output,
-                    SlimPipeSocket.STDERR_PREFIX);
+                originalMsg = extractOriginalMessage(output, STDERR_PREFIX);
                 if (originalMsg != null) {
                   executionLogListener.stdErr(originalMsg);
                   setCommandErrorMessage(originalMsg);
@@ -78,7 +76,7 @@ public class SlimClientBuilder extends ClientBuilder<SlimCommandRunningClient> {
             /**
              * This reverts the wrap that the LoggingOutputStream.flush method
              * is doing.
-             * 
+             *
              * @param prefixedMessage
              * @param level
              * @return == null : the message is not prefixed with the given
@@ -92,10 +90,11 @@ public class SlimClientBuilder extends ClientBuilder<SlimCommandRunningClient> {
               return null;
             }
 
-          }), "CommandRunner stdErr").start();
+          }), "CommandRunner stdOutErr").start();
 
         }
       };
+
     } else if (useManualStartForTestSystem()) {
       return new MockCommandRunner(
           "Connection to running SlimService: " + determineSlimHost() + ":"
@@ -109,7 +108,7 @@ public class SlimClientBuilder extends ClientBuilder<SlimCommandRunningClient> {
     if (getSlimPort() == SLIM_USE_PIPE_PORT) {
       return new PipeBasedSocketFactory(commandRunner);
     } else if ((determineClientSSLParameterClass() != null)) {
-      return new SslClientSocketFactory(determineHostSSLParameterClass());
+      return new SslClientSocketFactory(determineHostSSLParameters());
     } else {
       return new PlainClientSocketFactory();
     }
@@ -124,8 +123,9 @@ public class SlimClientBuilder extends ClientBuilder<SlimCommandRunningClient> {
       return sslParameterClassName;
   }
 
-  protected String determineHostSSLParameterClass() {
-      return getVariable(FitNesseContext.SSL_PARAMETER_CLASS_PROPERTY);
+  protected SslParameters determineHostSSLParameters() {
+    String val = getVariable(FitNesseContext.SSL_PARAMETER_CLASS_PROPERTY);
+    return SslParameters.createSslParameters(val);
   }
 
   public double getSlimVersion() {
@@ -149,11 +149,11 @@ public class SlimClientBuilder extends ClientBuilder<SlimCommandRunningClient> {
   protected String[] buildCommand() {
     String[] slimArguments = buildArguments();
     String[] slimCommandPrefix = super.buildCommand(getCommandPattern(), getTestRunner(), getClassPath());
-    return (String[]) ArrayUtils.addAll(slimCommandPrefix, slimArguments);
+    return ArrayUtils.addAll(slimCommandPrefix, slimArguments);
   }
 
   protected String[] buildArguments() {
-    Object[] arguments = new String[] {};
+    String[] arguments = new String[] {};
     String useSSL =  determineClientSSLParameterClass();
     if (useSSL != null){
     	arguments = ArrayUtils.add(arguments, "-ssl");
@@ -164,9 +164,9 @@ public class SlimClientBuilder extends ClientBuilder<SlimCommandRunningClient> {
     	for (String flag : slimFlags)
     		arguments = ArrayUtils.add(arguments, flag);
 
-	arguments = ArrayUtils.add(arguments, Integer.toString(getSlimPort()));
+  	arguments = ArrayUtils.add(arguments, Integer.toString(getSlimPort()));
 
-    return (String[]) arguments;
+    return arguments;
   }
 
   public int getSlimPort() {

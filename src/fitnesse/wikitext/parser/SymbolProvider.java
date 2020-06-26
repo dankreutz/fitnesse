@@ -10,7 +10,7 @@ public class SymbolProvider {
     });
 
     public static final SymbolProvider wikiParsingProvider = new SymbolProvider( new SymbolType[] {
-            Link.symbolType, new ColoredSlimTable(new Table()),
+            Link.symbolType, Table.symbolType,
             new HashTable(),  new HeaderLine(), Literal.symbolType, Nesting.symbolType, new Collapsible(),
             new AnchorName(), new Contents(), SymbolType.CenterLine, new Define(), new Help(),
             new Include(), SymbolType.Meta, SymbolType.NoteLine, Path.symbolType, new PlainTextTable(),
@@ -24,6 +24,7 @@ public class SymbolProvider {
             SymbolType.CloseParenthesis, SymbolType.CloseBrace, SymbolType.ClosePlainTextTable, SymbolType.CloseBracket, SymbolType.CloseLiteral,
             SymbolType.Bold, SymbolType.DateFormatOption,
             SymbolType.Italic, SymbolType.Strike, new AnchorReference(), WikiWord.symbolType, SymbolType.EMail, SymbolType.Text,
+            new Headings()
     });
 
     public static final SymbolProvider tableParsingProvider = new SymbolProvider(wikiParsingProvider).add(SymbolType.EndCell);
@@ -48,7 +49,9 @@ public class SymbolProvider {
     });
 
     static final SymbolProvider preformatProvider = new SymbolProvider(
-          new SymbolType[] {SymbolType.ClosePreformat, SymbolType.CloseBrace, SymbolType.CloseLiteral, Literal.symbolType, Variable.symbolType});
+          new SymbolType[] {SymbolType.ClosePreformat, SymbolType.CloseBrace, SymbolType.CloseLiteral, Literal.symbolType, Variable.symbolType,
+                            new Today(), SymbolType.Delta, SymbolType.Whitespace, SymbolType.OpenParenthesis, SymbolType.CloseParenthesis, SymbolType.DateFormatOption,
+                            Evaluator.symbolType, SymbolType.CloseEvaluator});
 
     private static final char defaultMatch = '\0';
 

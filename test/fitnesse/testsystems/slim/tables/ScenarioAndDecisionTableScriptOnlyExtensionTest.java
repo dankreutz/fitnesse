@@ -20,11 +20,13 @@ import fitnesse.wiki.WikiPageUtil;
 import fitnesse.wiki.fs.InMemoryPage;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
+@Ignore
 public class ScenarioAndDecisionTableScriptOnlyExtensionTest {
   private static final String SCRIPT_EXTENSION_NAME = "diffScript2";
   private static final String DIFF_SCRIPT_TABLE2_TYPE = "diffScriptTable2";
@@ -45,13 +47,13 @@ public class ScenarioAndDecisionTableScriptOnlyExtensionTest {
     assertions = new ArrayList<>();
   }
 
-  private SlimTestContextImpl makeTables(String scenarioText, String scriptText) throws Exception {
+  private SlimTestContextImpl makeTables(String scenarioText, String decisionTableText) throws Exception {
     SlimTestContextImpl testContext = new SlimTestContextImpl(new WikiTestPage(root));
     String tableText = "!|scenario|" + scenarioText + "|\n"
             + "\n"
             + "!|" + SCRIPT_EXTENSION_NAME + "|\n"
             + "\n"
-            + "!|DT:" + scriptText + "|\n";
+            + "!|DT:" + decisionTableText + "|\n";
     WikiPageUtil.setPageContents(root, tableText);
     TableScanner ts = new HtmlTableScanner(root.getHtml());
     Table t = ts.getTable(0);
